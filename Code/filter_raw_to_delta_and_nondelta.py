@@ -1,6 +1,8 @@
 
 import pandas as pd
 
+
+
 def process_comments(data):
     """Process the comments data to assign top-level IDs to each comment."""
     id_to_parent = dict(zip(data['id'], data['parent_id']))
@@ -25,7 +27,7 @@ def filter_by_submitter(data):
     top_level_ids_with_submitter = data[data['is_submitter'] == True]['top_level_id'].unique()
     return data[data['top_level_id'].isin(top_level_ids_with_submitter)]
 
-def filter_by_word_count(data, threshold=30):
+def filter_by_word_count(data, threshold=20):
     """Filters the data to include only those comment trees where the top-level 
     comment contains at least a specified threshold of words in the "body" field."""
     top_level_comments = data[data['parent_id'].str.startswith("t3")]
@@ -56,7 +58,7 @@ def process_and_consolidate_data(data_path):
     id_to_row = data.set_index('id').to_dict(orient='index')
     data['ancestors'] = data['id'].apply(lambda x: get_ancestors(x, id_to_parent))
     consolidated_entries = []
-    for index, row in data[data['received_delta']].iterrows():
+    for index, row in data.iterrows(): #for index, row in data[data['received_delta']].iterrows():
         sc = row['author']
         delta_comment_id = row['id']
         combined_text = [row['body']]
@@ -79,7 +81,8 @@ def process_and_consolidate_data(data_path):
             'author': sc,
             'combined_text': consolidated_text,
             'earliest_date': earliest_date,
-            'latest_date': latest_date
+            'latest_date': latest_date,
+            'received_delta': row['received_delta']
         })
     consolidated_data = pd.DataFrame(consolidated_entries)
     return consolidated_data
